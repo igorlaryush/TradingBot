@@ -8,5 +8,3 @@ def get_contracts():
         contracts.append(contract['symbol'])
 
     return contracts
-
-print(get_contracts())
