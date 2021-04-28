@@ -3,6 +3,7 @@ import logging
 
 from connectors.binance_futures import BinanceFuturesClient
 from connectors.bitmex import BitmexClient
+from interface.root_component import Root
 
 logger = logging.getLogger()
 
@@ -26,5 +27,5 @@ if __name__ == '__main__':
     #bitmex = BitmexClient("uXr1T711wD-", "", True)
     print(binance.get_balances()['BNB'].wallet_balance)
 
-    root = tk.Tk()
+    root = Root()
     root.mainloop()
