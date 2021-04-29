@@ -15,12 +15,11 @@ import threading
 
 from models import *
 
-
 logger = logging.getLogger()
 
 
 class BitmexClient:
-    def __init__(self, public_key: str, secret_key: str, testnet: bool):
+    def __init__(self, root, public_key: str, secret_key: str, testnet: bool):
 
         if testnet:
             self._base_url = "https://testnet.bitmex.com"
@@ -39,10 +38,16 @@ class BitmexClient:
 
         self.prices = dict()
 
+        self.logs = []
+
         t = threading.Thread(target=self._start_ws)
         t.start()
 
         logger.info("Bitmex Client successfully initialized")
+
+    def _add_log(self, msg: str):
+        logger.info('%s', msg)
+        self.logs.append({'log': msg, 'displayed': False})
 
     def _generate_signature(self, method: str, endpoint: str, expires: str, data: typing.Dict) -> str:
 
@@ -132,7 +137,8 @@ class BitmexClient:
 
         return candles
 
-    def place_order(self, contract: Contract, order_type: str, quantity: int, side: str, price=None, tif=None) -> OrderStatus:
+    def place_order(self, contract: Contract, order_type: str, quantity: int, side: str, price=None,
+                    tif=None) -> OrderStatus:
         data = dict()
 
         data['symbol'] = contract.symbol
@@ -179,7 +185,7 @@ class BitmexClient:
 
     def _start_ws(self):
         self._ws = websocket.WebSocketApp(self._wss_url, on_open=self._on_open, on_close=self._on_close,
-                                         on_error=self._on_error, on_message=self._on_message)
+                                          on_error=self._on_error, on_message=self._on_message)
 
         while True:
             try:
@@ -217,6 +223,12 @@ class BitmexClient:
                         self.prices[symbol]['bid'] = d['bidPrice']
                     if 'askPrice' in d:
                         self.prices[symbol]['ask'] = d['askPrice']
+
+                    if symbol == 'XBTUSD':
+                        self._add_log(symbol + ' ' +
+                                      str(self.prices[symbol]['bid']) +
+                                          ' / ' +
+                                          str(self.prices[symbol]['ask']))
 
     def subscribe_channel(self, topic: str):
         data = dict()
